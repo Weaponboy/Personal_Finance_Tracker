@@ -6,24 +6,25 @@ const HomePage = () => {
   const router = useRouter();
 
   return (
-    <View style ={styles.container}>
+    <View style={styles.container}>
 
-      <Image 
-        onPress = {() => router.push('/settings')}
-        style = {styles.title}
+      <Image
+        onPress={() => router.push('/settings')}
+        style={styles.title}
       />
-      
-      <Image source = {financeIcon} style = {styles.iconImage}/>
-      <Text style ={styles.title}>Welcome to your personal budgeting tool</Text>
-      
+
+      <Image source={financeIcon} style={styles.iconImage} />
+      <Text style={styles.title}>Welcome to your personal budgeting tool</Text>
+
       <TouchableOpacity
-        style = {styles.enterButton}
+        style={styles.enterButton}
         onPress={() => router.push('/addTransactions')}>
-        <Text style = {styles.enterText}>Enter transactions</Text>
+        <Text style={styles.enterText}>Enter transactions</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style = {styles.viewButton}>
-        <Text style = {styles.viewText}>View finances</Text>
+      <TouchableOpacity style={styles.viewButton}
+        onPress={() => router.push('/viewFinances')}>
+        <Text style={styles.viewText}>View finances</Text>
       </TouchableOpacity>
 
     </View>
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     height: 80,
     width: 80,
-  }, 
+  },
   title: {
     paddingTop: 20
   },
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     height: 60,
     backgroundColor: '#4F99B3',
     padding: 20,
-    marginTop: 20, 
+    marginTop: 20,
     textAlign: 'center',
     justifyContent: 'center',
     borderRadius: 20
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     height: 60,
     backgroundColor: '#4F99B3',
     padding: 20,
-    marginTop: 20, 
+    marginTop: 20,
     textAlign: 'center',
     justifyContent: 'center',
     borderRadius: 20

@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 
 const RootLayout = () => {
-  return <Stack 
+  return <Stack
     screenOptions={{
 
       headerStyle: {
@@ -9,19 +9,23 @@ const RootLayout = () => {
       },
 
       headerTitleStyle: {
-        fontSize: 25, 
+        fontSize: 25,
       }
 
-    }}> 
+    }}>
 
-   <Stack.Screen name="index" options={{
-     title: "Home",
-     headerTitleAlign: "center"
-    }}/>
+    <Stack.Screen name="index" options={{
+      title: "Home",
+      headerTitleAlign: "center"
+    }} />
     <Stack.Screen name="addTransactions" options={{
-     title: "Add Transactions",
-     headerTitleAlign: "center"
-    }}/>
+      title: "Add Transactions",
+      headerTitleAlign: "center"
+    }} />
+    <Stack.Screen name="viewFinances" options={{
+      title: "View Finances",
+      headerTitleAlign: "center"
+    }} />
 
   </Stack>
 }
