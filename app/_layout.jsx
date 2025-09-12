@@ -18,12 +18,19 @@ const RootLayout = () => {
       title: "Home",
       headerTitleAlign: "center"
     }} />
+
     <Stack.Screen name="addTransactions" options={{
       title: "Add Transactions",
       headerTitleAlign: "center"
     }} />
+
     <Stack.Screen name="viewFinances" options={{
       title: "View Finances",
+      headerTitleAlign: "center"
+    }} />
+
+    <Stack.Screen name="settings" options={{
+      title: "Settings",
       headerTitleAlign: "center"
     }} />
 

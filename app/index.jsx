@@ -28,19 +28,15 @@ const HomePage = () => {
         <Text style={styles.viewText}>View finances</Text>
       </TouchableOpacity>
 
-
       <TouchableOpacity
         style={styles.clickSettings}
-        onPress={() => router.push('/addTransactions')}
+        onPress={() => router.push('/settings')}
       >
         <Image
           source={settingsIcon}
           style={styles.settingsIcon}
-          onMagicTap={() => router.push('/viewFinances')}
         />
       </TouchableOpacity>
-
-
 
     </View>
   );
