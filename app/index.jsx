@@ -1,4 +1,5 @@
 import financeIcon from "@/assets/images/financeIcon.png";
+import settingsIcon from "@/assets/images/settingsIcon.png";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -26,6 +27,20 @@ const HomePage = () => {
         onPress={() => router.push('/viewFinances')}>
         <Text style={styles.viewText}>View finances</Text>
       </TouchableOpacity>
+
+
+      <TouchableOpacity
+        style={styles.clickSettings}
+        onPress={() => router.push('/addTransactions')}
+      >
+        <Image
+          source={settingsIcon}
+          style={styles.settingsIcon}
+          onMagicTap={() => router.push('/viewFinances')}
+        />
+      </TouchableOpacity>
+
+
 
     </View>
   );
@@ -72,7 +87,17 @@ const styles = StyleSheet.create({
   },
   enterText: {
     textAlign: 'center'
+  },
+  settingsIcon: {
+    height: 100,
+    width: 100,
+  },
+  clickSettings: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
   }
+
 });
 
 export default HomePage;
