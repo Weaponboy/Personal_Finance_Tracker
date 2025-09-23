@@ -1,10 +1,24 @@
 import financeIcon from "@/assets/images/financeIcon.png";
 import settingsIcon from "@/assets/images/settingsIcon.png";
 import { useRouter } from "expo-router";
+import { useEffect } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useAuth } from '../lib/AuthContext';
 
 const HomePage = () => {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    console.log('HomePage Auth state:', { loading, user });
+    if (!loading && !user && router.pathname !== '/login') {
+      router.replace('/login');
+    }
+  }, [user, loading, router.pathname]);
+
+  if (loading) {
+    return <View style={styles.container}><Text>Loading...</Text></View>;
+  }
 
   return (
     <View style={styles.container}>

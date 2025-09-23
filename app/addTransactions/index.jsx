@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Alert, Animated, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
 import { fireStoreDB } from '../../FirebaseConfig';
+import { useAuth } from '../../lib/AuthContext';
 
 const addTransactions = () => {
     const db = fireStoreDB;
+    const { user, loading } = useAuth();
     const [amount, setAmount] = useState('');
     const [beneficiary, setBeneficiary] = useState('');
 
@@ -72,39 +74,47 @@ const addTransactions = () => {
 
     const handleSaveTransaction = async () => {
         if (!amount.trim()) {
-            Alert.alert('Error', 'Please enter and amount');
+            Alert.alert('Error', 'Please enter an amount');
+            return;
+        }
+
+        if (!user) {
+            Alert.alert('Error', 'No user logged in. Please log in first.');
             return;
         }
 
         try {
-
-            let arrayData;
+            let transactionData;
 
             if (giving) {
-                arrayData = [
-                    { category: value },
-                    { amount: amount },
-                    { timestamp: new Date().toISOString() }
-                ];
+                transactionData = {
+                    category: value,
+                    amount: parseFloat(amount),
+                    beneficiary: beneficiary || null,
+                    timestamp: new Date().toISOString(),
+                    userId: user.uid,
+                };
             } else {
-                arrayData = [
-                    { category: value },
-                    { amount: amount },
-                    { timestamp: new Date().toISOString() }
-                ];
+                transactionData = {
+                    category: value,
+                    amount: parseFloat(amount),
+                    timestamp: new Date().toISOString(),
+                    paid: valuePaid || null,
+                    userId: user.uid,
+                };
             }
 
-            const docRef = await addDoc(collection(db, 'users'), {
-                arrayData
-            });
+            const docRef = await addDoc(collection(db, `users/${user.uid}/transactions`), transactionData);
 
+            console.log('Transaction saved with ID:', docRef.id);
             setValue(null);
+            setValuePaid(null);
             setAmount('');
             setBeneficiary('');
             Alert.alert('Success', 'Transaction saved!');
         } catch (error) {
             console.error('Error saving transaction:', error);
-            Alert.alert('Error', 'Failed to save transaction');
+            Alert.alert('Error', 'Failed to save transaction: ' + error.message);
         }
     };
 
@@ -113,6 +123,10 @@ const addTransactions = () => {
         setGiving(newValue === 'give');
         setPaid(newValue === 'expense');
     };
+
+    if (loading) {
+        return <View style={styles.container}><Text>Loading...</Text></View>;
+    }
 
     return (
         <View style={styles.container}>
