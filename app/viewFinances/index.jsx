@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import { fireStoreDB } from '../../FirebaseConfig';
+import { useAuth } from '../../lib/AuthContext';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -12,6 +13,8 @@ const chartConfig = {
 };
 
 const ViewFinances = () => {
+
+    const { user, loading } = useAuth();
 
     const [chartData, setChartData] = useState([
         {
@@ -43,11 +46,11 @@ const ViewFinances = () => {
             let givingValue = 0;
             let spendingValue = 0;
 
-            const usersRef = collection(fireStoreDB, 'transactions');
+            const usersRef = collection(fireStoreDB, `users/${user.uid}/transactions`);
 
-            const expenseQuery = query(usersRef, where('arrayData', 'array-contains', { category: 'expense' }));
-            const givingQuery = query(usersRef, where('arrayData', 'array-contains', { category: 'give' }));
-            const spendingQuery = query(usersRef, where('arrayData', 'array-contains', { category: 'spend' }));
+            const expenseQuery = query(usersRef, where('category', '==', 'expense'));
+            const givingQuery = query(usersRef, where('category', '==', 'give'));
+            const spendingQuery = query(usersRef, where('category', '==', 'spend'));
 
             const [querySnapshotEx, querySnapshotGive, querySnapshotSpend] = await Promise.all([
                 getDocs(expenseQuery),
@@ -57,29 +60,23 @@ const ViewFinances = () => {
 
             querySnapshotEx.forEach((doc) => {
                 const data = doc.data();
-                data.arrayData.forEach((item) => {
-                    if (item.amount !== undefined) {
-                        expensesValue += Number(item.amount);
-                    }
-                });
+                if (data.amount !== undefined) {
+                    expensesValue += Number(data.amount);
+                }
             });
 
             querySnapshotGive.forEach((doc) => {
                 const data = doc.data();
-                data.arrayData.forEach((item) => {
-                    if (item.amount !== undefined) {
-                        givingValue += Number(item.amount);
-                    }
-                });
+                if (data.amount !== undefined) {
+                    givingValue += Number(data.amount);
+                }
             });
 
             querySnapshotSpend.forEach((doc) => {
                 const data = doc.data();
-                data.arrayData.forEach((item) => {
-                    if (item.amount !== undefined) {
-                        spendingValue += Number(item.amount);
-                    }
-                });
+                if (data.amount !== undefined) {
+                    spendingValue += Number(data.amount);
+                }
             });
 
             setChartData([
