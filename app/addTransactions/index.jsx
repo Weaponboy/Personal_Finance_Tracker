@@ -1,4 +1,4 @@
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useState } from "react";
 import { Alert, Animated, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -16,8 +16,15 @@ const addTransactions = () => {
     const [items, setItems] = useState([
         { label: 'Income', value: 'in' },
         { label: 'Expense', value: 'expense' },
-        { label: 'Spending', value: 'spend' },
-        { label: 'Giving', value: 'give' },
+    ]);
+
+    const [openType, setOpenType] = useState(false);
+    const [valueType, setValueType] = useState(null);
+    const [itemsType, setItemsType] = useState([
+        { label: 'Living', value: 'Living' },
+        { label: 'Bills', value: 'Bill' },
+        { label: 'Personal', value: 'Personal' },
+        { label: 'Giving', value: 'Gifting' },
     ]);
 
     const [openPaid, setOpenPaid] = useState(false);
@@ -29,8 +36,10 @@ const addTransactions = () => {
 
     const [openCurrentlyPaid, setOpenCurrentlyPaid] = useState(false);
     const [openCurrently, setOpenCurrently] = useState(false);
+    const [openCurrentlyType, setOpenCurrentlyType] = useState(false);
     const [giving, setGiving] = useState(false);
     const [paid, setPaid] = useState(false);
+    const [expense, setExpense] = useState(false);
 
     const fadeAnim = new Animated.Value(0);
 
@@ -63,13 +72,82 @@ const addTransactions = () => {
 
     const onClose = () => {
         setOpenCurrently(false);
-        setGiving(value === 'give');
         setPaid(value === 'expense');
+        setExpense(value === 'expense');
         Animated.timing(fadeAnim, {
             toValue: 0,
             duration: 300,
             useNativeDriver: true,
         }).start();
+    };
+
+    const onOpenType = () => {
+        setOpenCurrentlyType(true);
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const onCloseType = () => {
+        setOpenCurrentlyType(false);
+        setGiving(valueType === 'Gifting');
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const updateTotal = async (value) => {
+        try {
+            const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+            const docSnap = await getDoc(totalRef);
+
+            let currentTotal = 0;
+
+            if (docSnap.exists()) {
+                currentTotal = parseFloat(docSnap.data().Total);
+            }
+
+            const newTotal = currentTotal + parseFloat(value);
+            await updateDoc(totalRef, {
+                Total: newTotal,
+            });
+
+        } catch (err) {
+            console.error('Failed to update total:', err);
+            setError('Failed to update total');
+        }
+    };
+
+    const updateGiving = async (value, other) => {
+        try {
+            const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+            const docSnap = await getDoc(totalRef);
+
+            let currentTotal = 0;
+
+            if (docSnap.exists()) {
+                currentTotal = parseFloat(docSnap.data().GivingTotal);
+            }
+
+            let newTotal;
+            if (other == 'True') {
+                newTotal = currentTotal + (parseFloat(value) * 0.1);
+            } else {
+                newTotal = currentTotal + (parseFloat(value));
+            }
+
+            await updateDoc(totalRef, {
+                GivingTotal: newTotal,
+            });
+
+        } catch (err) {
+            console.error('Failed to update total:', err);
+            setError('Failed to update total');
+        }
     };
 
     const handleSaveTransaction = async () => {
@@ -89,19 +167,30 @@ const addTransactions = () => {
             if (giving) {
                 transactionData = {
                     category: value,
+                    subCategory: valueType,
                     amount: parseFloat(amount),
                     beneficiary: beneficiary || null,
                     timestamp: new Date().toISOString(),
                     userId: user.uid,
                 };
+                updateTotal(-amount)
+                updateGiving(-amount, 'False')
             } else {
                 transactionData = {
                     category: value,
+                    subCategory: valueType,
                     amount: parseFloat(amount),
                     timestamp: new Date().toISOString(),
                     paid: valuePaid || null,
                     userId: user.uid,
                 };
+
+                if (value === 'in') {
+                    updateTotal(amount)
+                    updateGiving(amount, 'True')
+                } else if (valuePaid === 'paid') {
+                    updateTotal(-amount)
+                }
             }
 
             const docRef = await addDoc(collection(db, `users/${user.uid}/transactions`), transactionData);
@@ -120,8 +209,13 @@ const addTransactions = () => {
 
     const onChangeValue = (newValue) => {
         setValue(newValue);
-        setGiving(newValue === 'give');
+        setExpense(newValue === 'expense');
         setPaid(newValue === 'expense');
+    };
+
+    const onChangeValueType = (newValue) => {
+        setGiving(newValue === 'Gifting');
+        setPaid(newValue !== 'Gifting');
     };
 
     if (loading) {
@@ -188,6 +282,30 @@ const addTransactions = () => {
                 />
             </View>
 
+            <View
+                style={[styles.dropdownContainer, { display: expense ? 'flex' : 'none' }]}
+            >
+                <DropDownPicker
+                    style={[
+                        styles.dropdown,
+                        { backgroundColor: openCurrentlyType ? 'rgba(25, 150, 175, 0.89)' : 'rgba(255, 255, 255, 0.89)' }
+                    ]}
+                    dropDownContainerStyle={styles.dropdownMenu}
+                    animationStyle={{ opacity: fadeAnim }}
+                    open={openType}
+                    value={valueType}
+                    items={itemsType}
+                    setOpen={setOpenType}
+                    setValue={setValueType}
+                    setItems={setItemsType}
+                    placeholder="Select an item"
+                    onChangeValue={onChangeValueType}
+                    onOpen={onOpenType}
+                    onClose={onCloseType}
+                />
+            </View>
+
+
             <TouchableOpacity
                 style={styles.enterButton}
                 onPress={handleSaveTransaction}>
@@ -243,6 +361,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 2,
+        zIndex: 20
     },
     dropdownContainer: {
         alignItems: 'center',
