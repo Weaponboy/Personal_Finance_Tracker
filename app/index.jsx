@@ -1,7 +1,7 @@
 import financeIcon from "@/assets/images/financeIcon.png";
 import settingsIcon from "@/assets/images/settingsIcon.png";
 import { useRouter } from "expo-router";
-import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { fireStoreDB } from '../FirebaseConfig';
@@ -57,12 +57,39 @@ const HomePage = () => {
     return () => unsubscribe();
   }, [user, authLoading]);
 
-  // Function to mark a transaction as paid
+  const updateTotal = async (value) => {
+    try {
+      const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+      const docSnap = await getDoc(totalRef);
+
+      let currentTotal = 0;
+
+      if (docSnap.exists()) {
+        currentTotal = parseFloat(docSnap.data().Total);
+      }
+
+      const newTotal = currentTotal + parseFloat(value);
+      await updateDoc(totalRef, {
+        Total: newTotal,
+      });
+
+    } catch (err) {
+      console.error('Failed to update total:', err);
+      setError('Failed to update total');
+    }
+  };
+
   const markAsPaid = async (transactionId) => {
     try {
       const transactionRef = doc(fireStoreDB, `users/${user.uid}/transactions`, transactionId);
+
+      const docSnap = await getDoc(transactionRef);
+      const data = docSnap.data();
+
+      updateTotal(-data.amount)
+
       await updateDoc(transactionRef, {
-        paid: new Date().toISOString(),
+        paid: 'paid',
       });
     } catch (err) {
       console.error('Error marking transaction as paid:', err);

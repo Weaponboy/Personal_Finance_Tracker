@@ -17,7 +17,9 @@ const ViewFinances = () => {
     const { user, loading } = useAuth();
     const [total, setTotal] = useState();
     const [givingAmount, setGivingAmount] = useState();
-    const [incomeMonth, setIncome] = useState();
+    let incomeMonth = 0;
+    const [incomeAmount, setIncomeAmount] = useState();
+
 
     const [chartData, setChartData] = useState([
         {
@@ -59,25 +61,27 @@ const ViewFinances = () => {
 
             const usersRef = collection(fireStoreDB, `users/${user.uid}/transactions`);
 
-            // Calculate date range for the last 30 days
             const now = new Date();
             const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
             const livingQuery = query(
                 usersRef,
                 where('subCategory', '==', 'Living'),
+                where('paid', '==', 'paid'),
                 where('timestamp', '>=', thirtyDaysAgo.toISOString()),
                 where('timestamp', '<=', now.toISOString())
             );
             const givingQuery = query(
                 usersRef,
                 where('subCategory', '==', 'Gifting'),
+                where('paid', '==', 'paid'),
                 where('timestamp', '>=', thirtyDaysAgo.toISOString()),
                 where('timestamp', '<=', now.toISOString())
             );
             const billsQuery = query(
                 usersRef,
-                where('subCategory', '==', 'Bills'),
+                where('subCategory', '==', 'Bill'),
+                where('paid', '==', 'paid'),
                 where('timestamp', '>=', thirtyDaysAgo.toISOString()),
                 where('timestamp', '<=', now.toISOString())
             );
@@ -85,6 +89,7 @@ const ViewFinances = () => {
             const personalQuery = query(
                 usersRef,
                 where('subCategory', '==', 'Personal'),
+                where('paid', '==', 'paid'),
                 where('timestamp', '>=', thirtyDaysAgo.toISOString()),
                 where('timestamp', '<=', now.toISOString())
             );
@@ -161,7 +166,6 @@ const ViewFinances = () => {
 
     const getIncome = async () => {
         try {
-            setIncome(0);
 
             const usersRef = collection(fireStoreDB, `users/${user.uid}/transactions`);
 
@@ -175,17 +179,16 @@ const ViewFinances = () => {
                 where('timestamp', '<=', now.toISOString())
             );
 
-
             const [incomeQueryEx] = await Promise.all([
                 getDocs(incomeQuery),
             ]);
 
             incomeQueryEx.forEach((doc) => {
                 const data = doc.data();
-                if (data.amount !== undefined) {
-                    setIncome(incomeMonth + parseFloat(data.amount));
-                }
+                incomeMonth += parseFloat(data.amount);
             });
+
+            setIncomeAmount(incomeMonth)
 
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -282,7 +285,7 @@ const ViewFinances = () => {
             <View style={styles.incomeThisMonth}>
                 <Text style={styles.totalHeading}>Income this month: </Text>
                 <Text style={styles.totalHeading}>
-                    {incomeMonth}
+                    {incomeAmount}
                 </Text>
             </View>
 
@@ -299,9 +302,6 @@ const ViewFinances = () => {
                     paddingLeft="15"
                     absolute
                 />
-                {/* <TouchableOpacity style={styles.refreshButton} onPress={getData}>
-                    <Text>Refresh Data</Text>
-                </TouchableOpacity> */}
             </View>
 
         </View>
