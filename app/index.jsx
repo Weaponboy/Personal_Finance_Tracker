@@ -60,7 +60,6 @@ const HomePage = () => {
       }
     );
 
-    // Fetch partial payments
     const partialQ = collection(fireStoreDB, `users/${user.uid}/partiallyPaidTransactions`);
     const unsubscribePartials = onSnapshot(
       partialQ,

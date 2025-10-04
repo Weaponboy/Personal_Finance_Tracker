@@ -12,6 +12,7 @@ const chartConfig = {
     strokeWidth: 2,
 };
 
+
 const ViewFinances = () => {
 
     const { user, loading } = useAuth();
