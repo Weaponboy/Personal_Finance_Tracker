@@ -1,5 +1,5 @@
 import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Animated, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
 import { fireStoreDB } from '../../FirebaseConfig';
@@ -42,6 +42,22 @@ const addTransactions = () => {
     const [expense, setExpense] = useState(false);
 
     const fadeAnim = new Animated.Value(0);
+    const [currency, setCurrency] = useState(null);
+
+    const getCurrency = async () => {
+        try {
+            const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+            const docSnap = await getDoc(totalRef);
+
+            if (docSnap.exists()) {
+                setCurrency(docSnap.data().Currency);
+            }
+
+        } catch (err) {
+            console.error('Failed to update currency:', err);
+            setError('Failed to update currency');
+        }
+    };
 
     const onOpenPaid = () => {
         setOpenCurrentlyPaid(true);
@@ -218,6 +234,10 @@ const addTransactions = () => {
         setPaid(newValue !== 'Gifting');
     };
 
+    useEffect(() => {
+        getCurrency();
+    });
+
     if (loading) {
         return <View style={styles.container}><Text>Loading...</Text></View>;
     }
@@ -250,7 +270,7 @@ const addTransactions = () => {
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType='numeric'
-                placeholder="Amount"
+                placeholder={"Amount " + { currency }}
             />
 
             <TextInput

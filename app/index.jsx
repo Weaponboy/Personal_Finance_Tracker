@@ -190,7 +190,7 @@ const HomePage = () => {
       >
         <View style={styles.transactionDetails}>
           <Text style={styles.transactionText}>
-            {item.subCategory}:{currency}{item.amount.toFixed(2)}
+            {item.subCategory}: {currency}{item.amount.toFixed(2)}
           </Text>
           <Text style={styles.transactionSubText}>
             {new Date(item.timestamp).toLocaleDateString()}
@@ -202,7 +202,7 @@ const HomePage = () => {
           )}
           {paid > 0 && (
             <Text style={styles.transactionSubText}>
-              Paid: {currency} {paid.toFixed(2)}
+              Paid: {currency}{paid.toFixed(2)}
             </Text>
           )}
         </View>
