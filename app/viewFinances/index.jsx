@@ -5,6 +5,8 @@ import { PieChart } from 'react-native-chart-kit';
 import { fireStoreDB } from '../../FirebaseConfig';
 import { useAuth } from '../../lib/AuthContext';
 
+
+
 const screenWidth = Dimensions.get('window').width;
 
 const chartConfig = {
@@ -323,14 +325,14 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     totalHeading: {
-        fontSize: 20,
+        fontSize: 15,
         fontWeight: 600,
         textAlign: 'center',
     },
     totalView: {
         textAlign: 'center',
         justifyContent: 'center',
-        width: 190,
+        width: 160,
         display: 'flex',
         flexDirection: 'row',
         position: 'absolute',
@@ -343,7 +345,7 @@ const styles = StyleSheet.create({
     givingTotalView: {
         textAlign: 'center',
         justifyContent: 'center',
-        width: 190,
+        width: 160,
         display: 'flex',
         flexDirection: 'row',
         position: 'absolute',
@@ -355,7 +357,7 @@ const styles = StyleSheet.create({
     },
     incomeThisMonth: {
         justifyContent: 'center',
-        width: 390,
+        width: 350,
         display: 'flex',
         flexDirection: 'row',
         position: 'absolute',

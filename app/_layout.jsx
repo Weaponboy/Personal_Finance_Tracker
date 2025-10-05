@@ -37,6 +37,10 @@ const RootLayout = () => {
           },
         }}
       >
+        <Stack.Screen name="login" options={{
+          title: "Login",
+          headerTitleAlign: "center",
+        }} />
         <Stack.Screen name="index" options={{
           title: "Home",
           headerTitleAlign: "center",
