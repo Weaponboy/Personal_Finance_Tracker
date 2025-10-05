@@ -18,7 +18,23 @@ const HomePage = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [partialAmount, setPartialAmount] = useState('');
 
-  // Redirect to login if not authenticated
+  const [currency, setCurrency] = useState(null);
+
+  const getCurrency = async () => {
+    try {
+      const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+      const docSnap = await getDoc(totalRef);
+
+      if (docSnap.exists()) {
+        setCurrency(docSnap.data().Currency);
+      }
+
+    } catch (err) {
+      console.error('Failed to update currency:', err);
+      setError('Failed to update currency');
+    }
+  };
+
   useEffect(() => {
     console.log('HomePage Auth state:', { authLoading, user });
     if (!authLoading && !user && router.pathname !== '/login') {
@@ -26,16 +42,15 @@ const HomePage = () => {
     }
   }, [user, authLoading, router.pathname]);
 
-  // Fetch unpaid transactions and partial payments
   useEffect(() => {
     if (authLoading || !user) {
       setTransactionLoading(true);
       return;
     }
 
+    getCurrency();
     setTransactionLoading(true);
 
-    // Fetch unpaid transactions
     const q = query(
       collection(fireStoreDB, `users/${user.uid}/transactions`),
       where('paid', '==', null || 'unpaid'),
@@ -78,6 +93,7 @@ const HomePage = () => {
     return () => {
       unsubscribeTransactions();
       unsubscribePartials();
+      getCurrency();
     };
   }, [user, authLoading]);
 
@@ -147,7 +163,6 @@ const HomePage = () => {
 
       updateTotal(-amount);
 
-      // Check if fully paid
       if (newPaid >= selectedTransaction.amount) {
         const transRef = doc(fireStoreDB, `users/${user.uid}/transactions`, selectedTransaction.id);
         await updateDoc(transRef, { paid: 'paid' });
@@ -175,7 +190,7 @@ const HomePage = () => {
       >
         <View style={styles.transactionDetails}>
           <Text style={styles.transactionText}>
-            {item.subCategory}: ${item.amount.toFixed(2)}
+            {item.subCategory}:{currency}{item.amount.toFixed(2)}
           </Text>
           <Text style={styles.transactionSubText}>
             {new Date(item.timestamp).toLocaleDateString()}
@@ -187,7 +202,7 @@ const HomePage = () => {
           )}
           {paid > 0 && (
             <Text style={styles.transactionSubText}>
-              Paid: ${paid.toFixed(2)}
+              Paid: {currency} {paid.toFixed(2)}
             </Text>
           )}
         </View>
@@ -200,6 +215,10 @@ const HomePage = () => {
       </TouchableOpacity>
     );
   };
+
+  useEffect(() => {
+    getCurrency();
+  });
 
   if (authLoading) {
     return (

@@ -5,15 +5,12 @@ import { PieChart } from 'react-native-chart-kit';
 import { fireStoreDB } from '../../FirebaseConfig';
 import { useAuth } from '../../lib/AuthContext';
 
-
-
 const screenWidth = Dimensions.get('window').width;
 
 const chartConfig = {
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     strokeWidth: 2,
 };
-
 
 const ViewFinances = () => {
 
@@ -211,7 +208,8 @@ const ViewFinances = () => {
                 if (!docSnap.exists()) {
                     await setDoc(totalRef, {
                         Total: 0,
-                        GivingTotal: 0
+                        GivingTotal: 0,
+                        Currency: '$'
                     });
                     console.log('Total document created for user:', user.uid);
                 }

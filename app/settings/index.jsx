@@ -1,12 +1,43 @@
 import { useRouter } from 'expo-router';
-import { collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { collection, deleteDoc, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { Alert, Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import DropDownPicker from 'react-native-dropdown-picker';
 import { fireStoreDB } from '../../FirebaseConfig';
 import { logout, useAuth } from '../../lib/AuthContext';
 
 const Settings = () => {
     const router = useRouter();
     const { user, loading } = useAuth();
+
+    const [openCurrently, setOpenCurrently] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [value, setValue] = useState(null);
+    const [items, setItems] = useState([
+        { label: 'Rand (R)', value: 'R' },
+        { label: 'Dollar ($)', value: '$' },
+        { label: 'Pound (£)', value: '£' },
+    ]);
+
+    const fadeAnim = new Animated.Value(0);
+
+    const onOpen = () => {
+        setOpenCurrently(true);
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const onClose = () => {
+        setOpenCurrently(false);
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    };
 
     const handleLogout = async () => {
         console.log('Attempting logout');
@@ -34,7 +65,8 @@ const Settings = () => {
             const userRef = doc(fireStoreDB, `users/${user.uid}/total/${user.uid}`);
             await updateDoc(userRef, {
                 Total: 0,
-                GivingTotal: 0
+                GivingTotal: 0,
+                Currency: '$'
             });
 
             Alert.alert('Success', 'All data has been wiped.');
@@ -63,6 +95,44 @@ const Settings = () => {
         );
     };
 
+    const getCurrency = async () => {
+        try {
+            const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+            const docSnap = await getDoc(totalRef);
+
+            if (docSnap.exists()) {
+                setValue(docSnap.data().Currency);
+            }
+
+        } catch (err) {
+            console.error('Failed to update currency:', err);
+            setError('Failed to update currency');
+        }
+    };
+
+    const setCurrency = async (value) => {
+        try {
+            const totalRef = doc(fireStoreDB, `users/${user.uid}/total`, user.uid);
+
+            await updateDoc(totalRef, {
+                Currency: value,
+            });
+
+        } catch (err) {
+            console.error('Failed to update currency:', err);
+            setError('Failed to update currency');
+        }
+    };
+
+    const onChangeValue = (newValue) => {
+        setValue(newValue);
+        setCurrency(value);
+    };
+
+    useEffect(() => {
+        getCurrency();
+    });
+
     if (loading) {
         return <View style={styles.container}><Text>Loading...</Text></View>;
     }
@@ -75,6 +145,27 @@ const Settings = () => {
             <TouchableOpacity style={styles.wipeData} onPress={confirmWipeData}>
                 <Text style={styles.wipeDataText}>Wipe All Data</Text>
             </TouchableOpacity>
+
+            <View style={styles.dropdownContainer}>
+                <DropDownPicker
+                    style={[
+                        styles.dropdown,
+                        { backgroundColor: openCurrently ? 'rgba(25, 150, 175, 0.89)' : 'rgba(255, 255, 255, 0.89)' }
+                    ]}
+                    dropDownContainerStyle={styles.dropdownMenu}
+                    animationStyle={{ opacity: fadeAnim }}
+                    open={open}
+                    value={value}
+                    items={items}
+                    setOpen={setOpen}
+                    setValue={setValue}
+                    setItems={setItems}
+                    placeholder="Select an item"
+                    onChangeValue={onChangeValue}
+                    onOpen={onOpen}
+                    onClose={onClose}
+                />
+            </View>
         </View>
     );
 };
@@ -95,20 +186,43 @@ const styles = StyleSheet.create({
         backgroundColor: "#000000",
         borderRadius: 12
     },
+    dropdown: {
+        borderWidth: 2,
+        borderRadius: 8,
+        borderColor: '#000000ff',
+        width: 250,
+        fontSize: 16,
+        fontWeight: 500,
+        color: '#333',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        zIndex: 20
+    },
     logoutText: {
         color: '#fff'
     },
     wipeData: {
         position: 'absolute',
-        top: 65,
-        right: 15,
+        top: 15,
+        left: 15,
         padding: 10,
-        backgroundColor: "#ff0000",
+        backgroundColor: "#000000",
         borderRadius: 12
     },
     wipeDataText: {
         color: '#fff'
-    }
+    },
+    dropdownMenu: {
+        backgroundColor: "rgba(25, 150, 175, 0.89)",
+        width: 250,
+    },
+    dropdownContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
 });
 
 export default Settings;
